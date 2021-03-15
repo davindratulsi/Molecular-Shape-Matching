@@ -15,7 +15,7 @@ def parse_xyz_coords(traj_file: str,
                      num_atoms: int,
                      box_len: int) -> Tuple(int, np.ndarray):
     """
-    Function to retrieve xyz coordinates and number of frames
+    Parses xyz coordinates and number of frames
     from a .xyz or .cus file
 
     Args:
@@ -68,19 +68,28 @@ class Molecule(object):
     """
     def __init__(self,
                  num_atoms: int,
-                 xyzcoords: np.ndarray,
-                 frames: int) -> None:
+                 xyzcoords: np.ndarray) -> None:
         """
         Args:
-            num_atoms:
-            xyzcoords:
-            frames:
+            num_atoms: Number of atoms/beads in trajectory
+            xyzcoords: Array specifying the coordinates for all
+                       atoms/beads over all timesteps/frames
+                       Must be a three-dimensional numpy array
+                       of shape (frames, num_atoms, 4) where
+                       the last dimension is of the form,
+                       [atom_type, x, y, z]
+
+        Raises:
+            ValueError: If xyzcoords is not of shape (frames, num_atoms, 4)
 
         """
         # molecule attributes
         self.num_atoms = num_atoms
-        self.xyzcoords = xyzcoords
-        self.frames = frames
+        if xyzcoords.shape is (frames, num_atoms, 4):
+            self.xyzcoords = xyzcoords
+        else:
+            raise ValueError("Shape of xyzcoords must be (frames, num_atoms, 4)"
+        self.frames = xyzcoords.shape[0]
 
     @property
     def get_number_frames(self) -> int:
@@ -89,13 +98,13 @@ class Molecule(object):
 
     def get_xyz_coords(self, frame: int) -> np.ndarray:
         """
-        Method to retrieve xyz coordinates for a given frame
+        Retrieve xyz coordinates for a given frame
 
         Args:
             frame: frame in trajectory
 
         Returns:
-            Numpy array of shape, num_atoms x 4
+            Trajectory of specified shape as a numpy array of shape (num_atoms, 4)
         """
         return self.xyzcoords[frame]
 
@@ -104,10 +113,10 @@ class Molecule(object):
         Method to calculate center of mass of a given trajectory frame
 
         Args:
-            frame (int): frame in trajectory
+            frame: frame in trajectory
 
         Returns:
-            list: list of 3 elements corresponding to xyz coordinates of center of mass
+            com: List corresponding to xyz coordinates of center of mass
         """
         xmom = 0
         ymom = 0
@@ -116,18 +125,20 @@ class Molecule(object):
             xmom += self.get_xyz_coords(frame)[i][1]
             ymom += self.get_xyz_coords(frame)[i][2]
             zmom += self.get_xyz_coords(frame)[i][3]
-        return [xmom/self.num_atoms, ymom/self.num_atoms, zmom/self.num_atoms]
+        com = [xmom/self.num_atoms, ymom/self.num_atoms, zmom/self.num_atoms]
+        return com
 
     def get_rg2_tensor(self, frame: int) -> np.ndarray:
         """
-        Method to calculate the squared radius of gyration tensor of a given trajectory frame
+        Calculate the squared radius of gyration tensor of a given trajectory frame
         This method assumes that all atoms/beads have the same mass
 
         Args:
-            frame (int): frame in trajectory
+            frame: frame in trajectory
 
         Returns:
-            (array): 3x3 numpy array
+            rg_2_tensor: Squared radius of gyration tensor for a given trajectory frame
+                         Format as a 3x3 numpy array
         """
         coords = self.get_xyz_coords(frame)
         center_of_mass = self.get_center_of_mass(frame)
@@ -149,19 +160,22 @@ class Molecule(object):
             r_xz += r_x*r_z
             r_yz += r_y*r_z
         rg_2_tensor = np.array([[r_xx, r_xy, r_xz], [r_xy, r_yy, r_yz], [r_xz, r_yz, r_zz]])
-        return rg_2_tensor/self.num_atoms # normalize by number of atoms
+        rg_2_tensor = rg_2_tensor/self.num_atoms # normalize by number of atoms
+        return rg_2_tensor
 
     def get_eigs(self, frame: int) -> Tuple(np.ndarray, np.ndarray):
         """
-        Method to calculate the eigenvalues and eigenvectors
-          of the squared radius of gyration tensor
+        Calculate the eigenvalues and eigenvectors of the squared
+        radius of gyration tensor
 
         Args:
-            frame (int): frame in trajectory
+            frame: frame in trajectory
 
         Returns
-            (array, array): sorted array consisting of the three eigenvalues,
-                            3x3 array consisting of the three eigenvectors
+            eigs, eigvectors: Tuple consisting of the three eigenvalues,
+                              and corresponding eigenvectors from the
+                              squared radius of gyration tensor of a
+                              given frame
         """
         tensor = self.get_rg2_tensor(frame)
         eigs, eigvectors = LA.eig(tensor)
@@ -171,18 +185,19 @@ class Molecule(object):
                           frame: int,
                           rg2_target: float) -> np.ndarray:
         """
-        Method to scale coordinates of a given frame based on a target Rg^2
+        Scale coordinates of a given frame based on a target Rg^2
         Scaling is done based on the following:
-        If, (rg2_target)^2 = lambda*(rg_2_molecule)^2
+        (rg2_target)^2 = lambda*(rg_2_molecule)^2
         Thus for each coordinate of the molecule,
         lambda*(xi-com)^2 = (xi_scaled-com)^2
 
         Args:
-            frame (int): frame in trajectory
-            rg2_target (float): target squared radius of gyration
+            frame: frame in trajectory
+            rg2_target: target squared radius of gyration
 
         Returns:
-            coords
+            coords: Scaled coordinates for the given frame,
+                    specified as a numpy array of shape (num_atoms, 4)
         """
         coords = self.get_xyz_coords(frame)
         center_of_mass = self.get_center_of_mass(frame)
@@ -195,20 +210,20 @@ class Molecule(object):
             coords[i][2] = scale*coords[i][2] + (1 - scale)*center_of_mass[1]
             coords[i][3] = scale*coords[i][3] + (1 - scale)*center_of_mass[2]
         return coords
-        # self.xyzcoords[frame] = coords # update coordinates
 
     def translate_coordinates(self,
                               frame: int,
                               com_target: Union[List[float], np.ndarray]) -> np.ndarray:
         """
-        Method to translate coordinates of a given frame based on a target center of mass
+        Translate coordinates of a given frame based on a target center of mass
 
         Args:
-            frame (int): frame in trajectory
-            com_target (list): list of 3 elements to represent xyz coords of a target center of mass
+            frame: frame in trajectory
+            com_target: List representing xyz coordinate of a target center of mass
 
         Returns:
-            coords
+            coords: Translated coordinates for the given frame,
+                    specified as a numpy array of shape (num_atoms, 4)
         """
         coords = self.get_xyz_coords(frame)
         com_molecule = self.get_center_of_mass(frame)
@@ -218,28 +233,27 @@ class Molecule(object):
             coords[i][2] = coords[i][2] + shift[1]
             coords[i][3] = coords[i][3] + shift[2]
         return coords
-        # self.xyzcoords[frame] = coords # update coordinates
 
     def orient_molecule(self,
                         frame: int,
                         basis: Union[List[float], np.ndarray]) -> np.ndarray:
         """
-        Method to orient coordinates of a given frame to a specified basis
+        Orient coordinates of a given frame to a specified basis
         Orientation is done based on the following:
         If M is a matrix whose columns are the vectors of the new basis,
         the new coordinates for a column vector, v, are given by the matrix product (inv(M))*v.
 
         Args:
-            frame (int): frame in trajectory
-            basis (array): 3x3 numpy array to represent a coordinate basis
+            frame: frame in trajectory
+            basis: List or array representing the new coordinate basis
 
         Returns:
-            coords
+            coords: Oriented coordinates for the given frame,
+                    specified as a numpy array of shape (num_atoms, 4)
         """
         matrix_rotation = LA.inv(basis)
         coords = np.array(self.get_xyz_coords(frame))
         coords_oriented = matrix_rotation*coords.transpose()
-        # self.xyzcoords[frame] = coords_oriented.transpose() # update coordinates
         return coords_oriented.transpose()
 
     def get_number_clusters(self,
@@ -250,13 +264,18 @@ class Molecule(object):
             Uses DBSCAN clustering algorithm to determine number of clusters
             for a given frame
 
-            Args:
-                frame (int): frame in trajectory
-                eps (float): minimum distance between points to define a cluster
-                min_samples (int): minimum number of points to define a cluster
+            For more information, see:
+            https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html
 
-            Returns: the number of clusters as an integer
+            Args:
+                frame: Frame in trajectory
+                eps: Maximum distance between points to define a cluster
+                min_samples: Minimum number of points to define a cluster
+
+            Returns:
+                number_clusters: Number of clusters for specified frame
         """
         coords = np.array(self.get_xyz_coords(frame))
         model = DBSCAN(eps=eps, min_samples= min_samples).fit(coords)
-        return len(set(model.labels_))
+        number_clusters = len(set(model.labels_))
+        return number_clusters
