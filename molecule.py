@@ -19,15 +19,15 @@ def parse_xyz_coords(traj_file: str,
     from a .xyz or .cus file
 
     Args:
-        traj_file:
-        traj_type:
-        num_atoms:
-        box_len:
+        traj_file: Location of trajectory file of interest
+        traj_type: Trajectory type - currently support ``cus`` or ``xyz``
+        num_atoms: Number of atoms/beads in system
+        box_len: Box length of periodic system - cubic systems only
 
     Returns:
         (frames, xyzcoords): int, number of frames in trajectory
-                            ,3D array with shape (frames, num_atoms, 4)
-                            Last dimension is of form [atom_type, x, y, z]
+                             and 3D array with shape (frames, num_atoms, 4)
+                             Last dimension is of form [atom_type, x, y, z]
     """
     # parse file and retrieve all data excluding headers
     raw_coords = []
@@ -68,7 +68,8 @@ class Molecule(object):
     """
     def __init__(self,
                  num_atoms: int,
-                 xyzcoords: np.ndarray) -> None:
+                 xyzcoords: np.ndarray,
+                 frames: int) -> None:
         """
         Args:
             num_atoms: Number of atoms/beads in trajectory
@@ -78,6 +79,7 @@ class Molecule(object):
                        of shape (frames, num_atoms, 4) where
                        the last dimension is of the form,
                        [atom_type, x, y, z]
+            frames: Number of frames in trajectory
 
         Raises:
             ValueError: If xyzcoords is not of shape (frames, num_atoms, 4)
@@ -85,11 +87,11 @@ class Molecule(object):
         """
         # molecule attributes
         self.num_atoms = num_atoms
-        if xyzcoords.shape is (frames, num_atoms, 4):
+        self.frames = frames
+        if xyzcoords.shape == (frames, num_atoms, 4):
             self.xyzcoords = xyzcoords
         else:
-            raise ValueError("Shape of xyzcoords must be (frames, num_atoms, 4)"
-        self.frames = xyzcoords.shape[0]
+            raise ValueError("Shape of xyzcoords must be (frames, num_atoms, 4)")
 
     @property
     def get_number_frames(self) -> int:
@@ -104,7 +106,8 @@ class Molecule(object):
             frame: frame in trajectory
 
         Returns:
-            Trajectory of specified shape as a numpy array of shape (num_atoms, 4)
+            A numpy array of shape (num_atoms, 4) representing
+            the trajectory for a given frame.
         """
         return self.xyzcoords[frame]
 
@@ -137,8 +140,8 @@ class Molecule(object):
             frame: frame in trajectory
 
         Returns:
-            rg_2_tensor: Squared radius of gyration tensor for a given trajectory frame
-                         Format as a 3x3 numpy array
+            rg_2_tensor: Numpy array representing the squared radius of gyration
+                         tensor for a given trajectory frame
         """
         coords = self.get_xyz_coords(frame)
         center_of_mass = self.get_center_of_mass(frame)
@@ -196,8 +199,9 @@ class Molecule(object):
             rg2_target: target squared radius of gyration
 
         Returns:
-            coords: Scaled coordinates for the given frame,
-                    specified as a numpy array of shape (num_atoms, 4)
+            coords: Numpy array of shape (num_atoms, 4) representing
+                    the scaled coordinates for the given frame.
+
         """
         coords = self.get_xyz_coords(frame)
         center_of_mass = self.get_center_of_mass(frame)
@@ -222,8 +226,8 @@ class Molecule(object):
             com_target: List representing xyz coordinate of a target center of mass
 
         Returns:
-            coords: Translated coordinates for the given frame,
-                    specified as a numpy array of shape (num_atoms, 4)
+            coords: Numpy array of shape (num_atoms, 4) representing
+                    the translated coordinates for the given frame.
         """
         coords = self.get_xyz_coords(frame)
         com_molecule = self.get_center_of_mass(frame)
@@ -248,8 +252,8 @@ class Molecule(object):
             basis: List or array representing the new coordinate basis
 
         Returns:
-            coords: Oriented coordinates for the given frame,
-                    specified as a numpy array of shape (num_atoms, 4)
+            coords: Numpy array of shape (num_atoms, 4) representing
+                    the oriented coordinates for the given frame.
         """
         matrix_rotation = LA.inv(basis)
         coords = np.array(self.get_xyz_coords(frame))
