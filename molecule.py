@@ -13,7 +13,7 @@ from typing import List, Set, Dict, Tuple, Optional, Union
 def parse_xyz_coords(traj_file: str,
                      traj_type: str,
                      num_atoms: int,
-                     box_len: int) -> Tuple(int, np.ndarray):
+                     box_len: int) -> Tuple[int, np.ndarray]:
     """
     Parses xyz coordinates and number of frames
     from a .xyz or .cus file
@@ -121,9 +121,7 @@ class Molecule(object):
         Returns:
             com: List corresponding to xyz coordinates of center of mass
         """
-        xmom = 0
-        ymom = 0
-        zmom = 0
+        xmom, ymom, zmom = 0, 0, 0
         for i in range(self.num_atoms):
             xmom += self.get_xyz_coords(frame)[i][1]
             ymom += self.get_xyz_coords(frame)[i][2]
@@ -140,17 +138,12 @@ class Molecule(object):
             frame: frame in trajectory
 
         Returns:
-            rg_2_tensor: Numpy array representing the squared radius of gyration
+            rg_2_tensor: numpy array representing the squared radius of gyration
                          tensor for a given trajectory frame
         """
         coords = self.get_xyz_coords(frame)
         center_of_mass = self.get_center_of_mass(frame)
-        r_xx = 0
-        r_yy = 0
-        r_zz = 0
-        r_xy = 0
-        r_xz = 0
-        r_yz = 0
+        r_xx, r_yy, r_zz, r_xy, r_xz, r_yz = 0, 0, 0, 0, 0, 0
         for i in range(self.num_atoms):
             # (Rij)^2 = (1/N)*summation(Rij - Rcom)^2
             r_x = coords[i][1] - center_of_mass[0]
@@ -166,7 +159,7 @@ class Molecule(object):
         rg_2_tensor = rg_2_tensor/self.num_atoms # normalize by number of atoms
         return rg_2_tensor
 
-    def get_eigs(self, frame: int) -> Tuple(np.ndarray, np.ndarray):
+    def get_eigs(self, frame: int) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate the eigenvalues and eigenvectors of the squared
         radius of gyration tensor
