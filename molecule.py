@@ -13,7 +13,7 @@ from typing import List, Set, Dict, Tuple, Optional, Union
 def parse_xyz_coords(traj_file: str,
                      traj_type: str,
                      num_atoms: int,
-                     box_len: int) -> Tuple[int, np.ndarray]:
+                     box_dim: List[float]) -> Tuple[int, np.ndarray]:
     """
     Parses xyz coordinates and number of frames
     from a .xyz or .cus file
@@ -22,7 +22,7 @@ def parse_xyz_coords(traj_file: str,
         traj_file: Location of trajectory file of interest
         traj_type: Trajectory type - currently support ``cus`` or ``xyz``
         num_atoms: Number of atoms/beads in system
-        box_len: Box length of periodic system - cubic systems only
+        box_dim: x,y,z dimensions of periodic box defining system
 
     Returns:
         (frames, xyzcoords): int, number of frames in trajectory
@@ -46,9 +46,9 @@ def parse_xyz_coords(traj_file: str,
                     x, y, z = float(row[2]), float(row[3]), float(row[4])
                     # get true coords based on image flags
                     ix, iy, iz = float(row[-1]), float(row[-2]), float(row[-3])
-                    x = x + ix*box_len
-                    y = y + iy*box_len
-                    z = z + iz*box_len
+                    x = x + ix*box_dim[0]
+                    y = y + iy*box_dim[1]
+                    z = z + iz*box_dim[2]
                     coord = np.array([type, x, y, z])
                     raw_coords.append(coord)
 
