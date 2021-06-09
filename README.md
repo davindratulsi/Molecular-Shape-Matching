@@ -5,5 +5,6 @@ An instance of the Molecule class can access various coordinate transformation m
 - Molecular Shape Matching via Voxel matching
 - Generation of ordered configurations for single/multiple collections of molecules
 
-
-
+Note:
+From parent directory, run examples as follows:
+python -m examples.test_voxelize

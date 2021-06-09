@@ -19,7 +19,7 @@ def voxelize(coords: Union[List[float], np.ndarray],
         voxel_array
     """
     voxel_length = (max_global - min_global)/(voxel_res -1)
-    voxel_array = np.zeros(voxel_res, voxel_res, voxel_res)
+    voxel_array = np.zeros((voxel_res, voxel_res, voxel_res))
     for i in range(len(coords)): # loop over all points
         point_x = (coords[i][1] - min_global)/(voxel_length)
         point_y = (coords[i][2] - min_global)/(voxel_length)
@@ -29,3 +29,4 @@ def voxelize(coords: Union[List[float], np.ndarray],
         z_index = math.ceil(point_z) + 1
         # voxel_array[x_index][y_index][z_index] = voxel_array[x_index][y_index][z_index] + 1
         voxel_array[x_index][y_index][z_index]= 1 # logical array
+    return voxel_array
