@@ -18,9 +18,6 @@ class Molecule(object):
             xyzcoords: Array specifying the coordinates for all
                        atoms/beads over all timesteps/frames
             frames: Number of frames in trajectory
-
-        Raises:
-            ValueError: If xyzcoords is not of shape (frames, num_atoms, 4)
         """
         # molecule attributes
         self.num_atoms = num_atoms
@@ -183,8 +180,8 @@ class Molecule(object):
                     the oriented coordinates for the given frame.
         """
         matrix_rotation = LA.inv(basis)
-        coords = np.array(self.get_xyz_coords(frame))
-        coords_oriented = matrix_rotation*coords.transpose()
+        coords = np.asarray(self.get_xyz_coords(frame))
+        coords_oriented = np.dot(matrix_rotation, coords.transpose())
         return coords_oriented.transpose()
 
     def get_number_clusters(self,
