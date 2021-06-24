@@ -57,9 +57,9 @@ class Molecule(object):
         """
         xmom, ymom, zmom = 0, 0, 0
         for i in range(self.num_atoms):
-            xmom += self.get_xyz_coords(frame)[i][1]
-            ymom += self.get_xyz_coords(frame)[i][2]
-            zmom += self.get_xyz_coords(frame)[i][3]
+            xmom += self.get_xyz_coords(frame)[i][0]
+            ymom += self.get_xyz_coords(frame)[i][1]
+            zmom += self.get_xyz_coords(frame)[i][2]
         com = [xmom/self.num_atoms, ymom/self.num_atoms, zmom/self.num_atoms]
         return com
 
@@ -80,9 +80,9 @@ class Molecule(object):
         r_xx, r_yy, r_zz, r_xy, r_xz, r_yz = 0, 0, 0, 0, 0, 0
         for i in range(self.num_atoms):
             # (Rij)^2 = (1/N)*summation(Rij - Rcom)^2
-            r_x = coords[i][1] - center_of_mass[0]
-            r_y = coords[i][2] - center_of_mass[1]
-            r_z = coords[i][3] - center_of_mass[2]
+            r_x = coords[i][0] - center_of_mass[0]
+            r_y = coords[i][1] - center_of_mass[1]
+            r_z = coords[i][2] - center_of_mass[2]
             r_xx += r_x**2
             r_yy += r_y**2
             r_zz += r_z**2
@@ -137,9 +137,9 @@ class Molecule(object):
         rg_target = (rg2_target)**0.5
         scale = rg_target/rg_molecule
         for i in range(self.num_atoms):
-            coords[i][1] = scale*coords[i][1] + (1 - scale)*center_of_mass[0]
-            coords[i][2] = scale*coords[i][2] + (1 - scale)*center_of_mass[1]
-            coords[i][3] = scale*coords[i][3] + (1 - scale)*center_of_mass[2]
+            coords[i][0] = scale*coords[i][0] + (1 - scale)*center_of_mass[0]
+            coords[i][1] = scale*coords[i][1] + (1 - scale)*center_of_mass[1]
+            coords[i][2] = scale*coords[i][2] + (1 - scale)*center_of_mass[2]
         return coords
 
     def translate_coordinates(self,
@@ -160,9 +160,9 @@ class Molecule(object):
         com_molecule = self.get_center_of_mass(frame)
         shift = [tar - mol for tar, mol in zip(com_target, com_molecule)]
         for i in range(self.num_atoms):
-            coords[i][1] = coords[i][1] + shift[0]
-            coords[i][2] = coords[i][2] + shift[1]
-            coords[i][3] = coords[i][3] + shift[2]
+            coords[i][0] = coords[i][0] + shift[0]
+            coords[i][1] = coords[i][1] + shift[1]
+            coords[i][2] = coords[i][2] + shift[2]
         return coords
 
     def orient_molecule(self,
