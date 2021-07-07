@@ -1,16 +1,30 @@
 import math
 import numpy as np
 from scripts import Molecule, parse_xyz_coords, voxelize
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 # # Test
 traj_file = "./examples/torus_2000mer.cus"
-num_atoms = 2000
 box_dim = [198, 198, 198]
 traj_type = "cus"
+frames = 201
 frame_to_read = 0
-frames, xyzcoords = parse_xyz_coords(traj_type=traj_type, traj_file=traj_file,
-                                     num_atoms=num_atoms, box_dim = box_dim)
+num_atoms, xyzcoords = parse_xyz_coords(traj_type=traj_type, traj_file=traj_file,
+                                                type_list=[1], frames=frames,
+                                                box_dim=box_dim)
 mol = Molecule(num_atoms=num_atoms, frames=frames, xyzcoords=xyzcoords)
-
+# # voxelize
 coords = mol.get_xyz_coords(frame=frame_to_read)
-print(coords)
+xdata = [coord[0] for coord in coords]
+ydata = [coord[1] for coord in coords]
+zdata = [coord[2] for coord in coords]
+max_global = max([max(xdata), max(ydata), max(zdata)]) + 1
+min_global = min([min(xdata), min(ydata), min(zdata)]) - 1
+voxels = voxelize(coords=coords, voxel_res=100,
+                  min_global=min_global, max_global=max_global)
+# # Plot
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.voxels(voxels, edgecolor="k")
+plt.show()
