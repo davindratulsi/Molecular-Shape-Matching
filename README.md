@@ -9,6 +9,5 @@ Example of ordered configuration of vesicles:
 ![multi_configuration](https://user-images.githubusercontent.com/50631178/134600197-670d7fff-a60c-44b1-9ff2-f86e613e38bb.png)
 
 
-Note:
-From parent directory, run examples as follows:
-python -m examples.test_voxelize
+# Usage
+`python -m examples.test_voxelize`
