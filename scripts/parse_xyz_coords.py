@@ -19,7 +19,7 @@ def parse_xyz_coords(traj_file: str,
         box_dim: x, y, z dimensions of periodic box defining system
 
     Returns:
-        (num_types, raw_coords): number of atoms, 
+        (num_types, raw_coords): number of atoms,
                                  and numpy array of shape (num_atoms, 3)
                                  Last dimension is of form [x, y, z]
     """
@@ -31,11 +31,11 @@ def parse_xyz_coords(traj_file: str,
                 if len(line.split()) > 3 and int(line.split()[0]) in type_list:
                     row = line.split()
                     coord = [float(row[1]), float(row[2]), float(row[3])]
-                    raw_coords.append(coord)                
+                    raw_coords.append(coord)
         elif traj_type == 'cus':
             for line in file_in:
                 if not line.startswith('ITEM: ATOMS') and len(line.split()) > 6 \
-                   and int(line.split()[0]) in type_list:
+                   and int(line.split()[1]) in type_list:
                     row = line.split()
                     x, y, z = float(row[2]), float(row[3]), float(row[4])
                     # get true coords based on image flags
