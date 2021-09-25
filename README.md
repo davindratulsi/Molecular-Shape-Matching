@@ -10,9 +10,9 @@ Example of creating an ordered configuration of vesicles:
 
 ![multi_configuration](https://user-images.githubusercontent.com/50631178/134701268-29a78bdd-9ca0-4103-8fe9-ae01f4085f95.png)
 
-Tracking the number of clusters in molecular trajectories of necklaces (left) and toroidal shapes (right):
+Voxelization of a torus:
 
-![clustering_molecules](https://user-images.githubusercontent.com/50631178/134700391-b1796f44-69b1-4003-b25e-0cc624377198.png)
+![torus_voxel](https://user-images.githubusercontent.com/50631178/134750911-b2d1e8bc-d715-4023-8b0c-5179d264c9bb.png)
 
 
 # Usage
